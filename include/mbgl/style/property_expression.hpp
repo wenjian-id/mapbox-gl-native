@@ -52,6 +52,15 @@ public:
     T evaluate(float zoom) const {
         return evaluate(expression::EvaluationContext(zoom));
     }
+    
+    T evaluate(mapbox::feature::feature<double>& f, T finalDefaultValue = T()) const {
+        const expression::EvaluationResult result = expression->evaluate(f);
+        if (result) {
+            const optional<T> typed = expression::fromExpressionValue<T>(*result);
+            return typed ? *typed : defaultValue ? *defaultValue : finalDefaultValue;
+        }
+        return defaultValue ? *defaultValue : finalDefaultValue;
+    }
 
     T evaluate(const GeometryTileFeature& feature, T finalDefaultValue) const {
         return evaluate(expression::EvaluationContext(&feature), finalDefaultValue);

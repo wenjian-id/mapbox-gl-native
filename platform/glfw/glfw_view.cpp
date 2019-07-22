@@ -2,6 +2,7 @@
 #include "glfw_backend.hpp"
 #include "glfw_renderer_frontend.hpp"
 #include "ny_route.hpp"
+#include "helsinki_dots.hpp"
 
 #include <mbgl/annotation/annotation.hpp>
 #include <mbgl/style/style.hpp>
@@ -20,6 +21,9 @@
 #include <mbgl/gfx/backend.hpp>
 #include <mbgl/gfx/backend_scope.hpp>
 #include <mbgl/map/camera.hpp>
+#include <mbgl/style/sources/geojson_source.hpp>
+#include <mbgl/style/layers/circle_layer.hpp>
+#include <mbgl/style/layers/symbol_layer.hpp>
 
 #include <mapbox/cheap_ruler.hpp>
 #include <mapbox/geometry.hpp>
@@ -319,6 +323,28 @@ void GLFWView::onKey(GLFWwindow *window, int key, int /*scancode*/, int action, 
                     view->map->updateAnnotation(boundAnnotationID, boundAnnotation);
                 }
             }
+        } break;
+        case GLFW_KEY_F: {
+            using namespace mbgl::style;
+            GeoJSONOptions options;
+            options.cluster = true;
+            options.clusterRadius = 100;
+            
+            auto source = std::make_unique<GeoJSONSource>("dots", options);
+            source->setGeoJSON(mapbox::geojson::parse(mbgl::platform::glfw::dots));
+            
+            auto& style = view->map->getStyle();
+            style.addSource(std::move(source));
+            
+            auto circleLayer = std::make_unique<mbgl::style::CircleLayer>("clusters", "dots");
+            circleLayer->setCircleColor(mbgl::Color{ 1.0, 0.0, 0.0, 1.0 });
+            style.addLayer(std::move(circleLayer));
+            
+            auto symbolLayer = std::make_unique<mbgl::style::SymbolLayer>("test", "dots");
+            using namespace mbgl::style::expression::dsl;
+            symbolLayer->setTextField(PropertyExpression<expression::Formatted>(toFormatted(get("max"))));
+            
+            style.addLayer(std::move(symbolLayer));
         } break;
         case GLFW_KEY_T:
             view->toggleCustomSource();
