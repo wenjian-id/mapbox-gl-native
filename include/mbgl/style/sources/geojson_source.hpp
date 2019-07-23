@@ -1,9 +1,13 @@
 #pragma once
 
 #include <mbgl/style/source.hpp>
+#include <mbgl/util/constants.hpp>
 #include <mbgl/util/geojson.hpp>
 #include <mbgl/util/optional.hpp>
-#include <mbgl/util/constants.hpp>
+
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 namespace mbgl {
 
@@ -24,6 +28,7 @@ struct GeoJSONOptions {
     bool cluster = false;
     uint16_t clusterRadius = 50;
     uint8_t clusterMaxZoom = 17;
+    std::unordered_map<std::string, std::pair<std::string, std::string>> clusterProperties;
 };
 
 class GeoJSONSource : public Source {

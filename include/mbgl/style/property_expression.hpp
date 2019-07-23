@@ -1,10 +1,10 @@
 #pragma once
 
 #include <mbgl/style/expression/expression.hpp>
-#include <mbgl/style/expression/is_constant.hpp>
-#include <mbgl/style/expression/interpolate.hpp>
-#include <mbgl/style/expression/step.hpp>
 #include <mbgl/style/expression/find_zoom_curve.hpp>
+#include <mbgl/style/expression/interpolate.hpp>
+#include <mbgl/style/expression/is_constant.hpp>
+#include <mbgl/style/expression/step.hpp>
 #include <mbgl/util/range.hpp>
 
 namespace mbgl {
@@ -34,11 +34,10 @@ template <class T>
 class PropertyExpression final : public PropertyExpressionBase {
 public:
     // Second parameter to be used only for conversions from legacy functions.
-    PropertyExpression(std::unique_ptr<expression::Expression> expression_, optional<T> defaultValue_ = nullopt)
-        : PropertyExpressionBase(std::move(expression_)),
-          defaultValue(std::move(defaultValue_)) {
+    PropertyExpression(std::unique_ptr<expression::Expression> expression_,
+                       optional<T> defaultValue_ = nullopt)
+        : PropertyExpressionBase(std::move(expression_)), defaultValue(std::move(defaultValue_)) {
     }
-
     T evaluate(const expression::EvaluationContext& context, T finalDefaultValue = T()) const {
         assert(canEvaluateWith(context));
         const expression::EvaluationResult result = expression->evaluate(context);
@@ -52,9 +51,11 @@ public:
     T evaluate(float zoom) const {
         return evaluate(expression::EvaluationContext(zoom));
     }
-    
-    T evaluate(mapbox::feature::feature<double>& f, T finalDefaultValue = T()) const {
-        const expression::EvaluationResult result = expression->evaluate(f);
+
+    T evaluate(optional<double> accumulated,
+               mapbox::feature::feature<double>& f,
+               T finalDefaultValue = T()) const {
+        const expression::EvaluationResult result = expression->evaluate(accumulated, f);
         if (result) {
             const optional<T> typed = expression::fromExpressionValue<T>(*result);
             return typed ? *typed : defaultValue ? *defaultValue : finalDefaultValue;
@@ -74,8 +75,7 @@ public:
         return expression::fromExpressionValues<T>(expression->possibleOutputs());
     }
 
-    friend bool operator==(const PropertyExpression& lhs,
-                           const PropertyExpression& rhs) {
+    friend bool operator==(const PropertyExpression& lhs, const PropertyExpression& rhs) {
         return *lhs.expression == *rhs.expression;
     }
 

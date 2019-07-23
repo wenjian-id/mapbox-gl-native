@@ -13,17 +13,30 @@
 #include <rapidjson/error/en.h>
 
 #include <mapbox/geojsonvt.hpp>
-#include <supercluster.hpp>
-#include <mbgl/style/conversion/json.hpp>
 #include <mbgl/style/conversion/constant.hpp>
-#include <mbgl/style/conversion/property_value.hpp>
-#include <mbgl/style/expression/dsl.hpp>
+#include <mbgl/style/conversion/json.hpp>
+#include <supercluster.hpp>
 
 #include <cmath>
 #include <functional>
 
 namespace mbgl {
 namespace style {
+
+template <class T>
+PropertyExpression<T> createPropertyExpression(const char* expr) {
+    using JSValue = rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>;
+    rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> document;
+    document.Parse<0>(expr);
+    assert(!document.HasParseError());
+
+    //        optional<expression::TypeAnnotationOption> typeAnnotationOption;
+    const JSValue* expression = &document;
+    expression::ParsingContext ctx;
+    expression::ParseResult parsed =
+        ctx.parseExpression(mbgl::style::conversion::Convertible(expression));
+    return PropertyExpression<T>(std::move(*parsed));
+}
 
 class GeoJSONVTData : public GeoJSONData {
 public:
@@ -85,18 +98,13 @@ GeoJSONSource::Impl::Impl(std::string id_, GeoJSONOptions options_)
     : Source::Impl(SourceType::GeoJSON, std::move(id_)), options(std::move(options_)) {
 }
 
-std::unique_ptr<style::expression::Expression>
-createExpression(const char* op, std::vector<std::unique_ptr<style::expression::Expression>> args) {
-    style::expression::ParsingContext ctx;
-    style::expression::ParseResult result =
-        style::expression::createCompoundExpression(op, std::move(args), ctx);
-    assert(result);
-    return std::move(*result);
-}
-
 GeoJSONSource::Impl::Impl(const Impl& other, const GeoJSON& geoJSON)
     : Source::Impl(other), options(other.options) {
     constexpr double scale = util::EXTENT / util::tileSize;
+    options.clusterProperties =
+        std::unordered_map<std::string, std::pair<std::string, std::string>>{
+            { "max", { "+", R"(["get", "scalerank"])" } }
+        };
 
     if (options.cluster && geoJSON.is<mapbox::feature::feature_collection<double>>() &&
         !geoJSON.get<mapbox::feature::feature_collection<double>>().empty()) {
@@ -104,51 +112,42 @@ GeoJSONSource::Impl::Impl(const Impl& other, const GeoJSON& geoJSON)
         clusterOptions.maxZoom = options.clusterMaxZoom;
         clusterOptions.extent = util::EXTENT;
         clusterOptions.radius = ::round(scale * options.clusterRadius);
-        // process here, taking the cluster propeties into consideration
-        
-        using namespace mbgl::style::expression::dsl;
-        using namespace mbgl;
-        using namespace mbgl::style;
-
-      using JSValue = rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>;
-
-        
-//        std::unordered_map<std::string, const char*>
-//        properties{{std::string("max"), expr1}};
-        const char* expr1 = R"(["get", "scalerank"])";
-        rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> document;
-        document.Parse<0>(expr1);
-        assert(!document.HasParseError());
-        expression::ParsingContext ctx;
-//        optional<expression::TypeAnnotationOption> typeAnnotationOption;
-        const JSValue* expression = &document;
-        expression::ParseResult parsed = ctx.parseExpression(mbgl::style::conversion::Convertible(expression));
-        auto mapExpression = PropertyExpression<double>(std::move(*parsed));
-        
-        const char* expr2 = R"(["+",["accumulated"], ["get", "max"]])";
-        rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> document2;
-        document2.Parse<0>(expr2);
-        assert(!document2.HasParseError());
-        expression::ParsingContext ctx2;
-        //        optional<expression::TypeAnnotationOption> typeAnnotationOption;
-        const JSValue* expression2 = &document2;
-        expression::ParseResult parsed2 = ctx.parseExpression(mbgl::style::conversion::Convertible(expression2));
-        auto reduceExpression = PropertyExpression<double>(std::move(*parsed2));
-        
-        
-//        auto mapExpression = PropertyExpression<double>(get("scalerank"));
-//        auto reduceExpression = PropertyExpression<double>(get("max"));
-         clusterOptions.map = [&](const mapbox::feature::property_map& properties) ->
-        mapbox::feature::property_map {mapbox::feature::property_map ret{};
-            auto feature = mapbox::feature::feature<double>();
-            feature.properties = properties;
-            ret["max"] = mapExpression.evaluate(feature);
+        std::unordered_map<std::string, PropertyExpression<double>> mapExpressions;
+        std::unordered_map<std::string, PropertyExpression<double>> reduceExpressions;
+        for (const auto& p : options.clusterProperties) {
+            mapExpressions.emplace(p.first,
+                                   createPropertyExpression<double>(p.second.second.c_str()));
+            std::stringstream ss;
+            // [operator, ['accumulated'], ['get', key]]
+            ss << std::string(R"([")") << p.second.first
+               << std::string(R"(", ["accumulated"], ["get", ")") << p.first
+               << std::string(R"("]])");
+            reduceExpressions.emplace(p.first, createPropertyExpression<double>(ss.str().c_str()));
+        }
+        clusterOptions.map =
+            [&](const mapbox::feature::property_map& properties) -> mapbox::feature::property_map {
+            mapbox::feature::property_map ret{};
+            for (const auto& p : options.clusterProperties) {
+                auto feature = mapbox::feature::feature<double>();
+                feature.properties = properties;
+                auto iter = mapExpressions.find(p.first);
+                if (iter != mapExpressions.end()) {
+                    ret[p.first] = iter->second.evaluate(nullopt, feature);
+                }
+            }
             return ret;
         };
-        clusterOptions.reduce = [&](mapbox::feature::property_map & toReturn, const mapbox::feature::property_map &toFill){
-            auto feature = mapbox::feature::feature<double>();
-            feature.properties = toFill;
-            toReturn["max"] = reduceExpression.evaluate( feature);
+        clusterOptions.reduce = [&](mapbox::feature::property_map& toReturn,
+                                    const mapbox::feature::property_map& toFill) {
+            for (const auto& p : options.clusterProperties) {
+                auto feature = mapbox::feature::feature<double>();
+                feature.properties = toFill;
+                optional<double> accumulated(toReturn[p.first].get<double>());
+                auto iter = reduceExpressions.find(p.first);
+                if (iter != reduceExpressions.end()) {
+                    toReturn[p.first] = iter->second.evaluate(accumulated, feature);
+                }
+            }
         };
         data = std::make_shared<SuperclusterData>(
             geoJSON.get<mapbox::feature::feature_collection<double>>(), clusterOptions);

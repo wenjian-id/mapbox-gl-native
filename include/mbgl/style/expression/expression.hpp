@@ -32,6 +32,9 @@ public:
     EvaluationContext(float zoom_, GeometryTileFeature const * feature_) :
         zoom(zoom_), feature(feature_)
     {}
+    EvaluationContext(optional<double> accumulated_, GeometryTileFeature const * feature_) :
+    accumulated(std::move(accumulated_)), feature(feature_)
+    {}
     EvaluationContext(optional<float> zoom_, GeometryTileFeature const * feature_, optional<double> colorRampParameter_) :
         zoom(std::move(zoom_)), feature(feature_), colorRampParameter(std::move(colorRampParameter_))
     {}
@@ -42,9 +45,10 @@ public:
     };
 
     optional<float> zoom;
+    optional<double> accumulated;
     GeometryTileFeature const * feature = nullptr;
     optional<double> colorRampParameter;
-    optional<double> accumulated;
+
     // Contains formatted section object, std::unordered_map<std::string, Value>.
     const Value* formattedSection = nullptr;
 };
@@ -164,7 +168,7 @@ public:
     type::Type getType() const { return type; };
     
     EvaluationResult evaluate(optional<float> zoom, const Feature& feature, optional<double> colorRampParameter) const;
-    EvaluationResult evaluate(const Feature& feature) const;
+    EvaluationResult evaluate(optional<double> accumulated, const Feature& feature) const;
     /**
      * Statically analyze the expression, attempting to enumerate possible outputs. Returns
      * an array of values plus the sentinel null optional value, used to indicate that the

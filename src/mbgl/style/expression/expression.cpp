@@ -30,12 +30,12 @@ public:
     
 EvaluationResult Expression::evaluate(optional<float> zoom, const Feature& feature, optional<double> colorRampParameter) const {
     GeoJSONFeature f(feature);
-    return this->evaluate(EvaluationContext(zoom, &f, colorRampParameter));
+    return this->evaluate(EvaluationContext(zoom,  &f, colorRampParameter));
 }
 
-EvaluationResult Expression::evaluate(const Feature& feature) const{
+EvaluationResult Expression::evaluate(optional<double> accumulated, const Feature& feature) const{
     GeoJSONFeature f(feature);
-    return this->evaluate(EvaluationContext(&f));
+    return this->evaluate(EvaluationContext(accumulated,&f));
 }
 
 } // namespace expression
