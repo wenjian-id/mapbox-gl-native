@@ -5,13 +5,13 @@
 namespace mbgl {
 namespace style {
 namespace expression {
-
+ 
 class GeoJSONFeature : public GeometryTileFeature {
 public:
     const Feature& feature;
-
-    GeoJSONFeature(const Feature& feature_) : feature(feature_) {}
-
+    
+    GeoJSONFeature( const Feature& feature_) : feature(feature_) {}
+    
     FeatureType getType() const override  {
         return apply_visitor(ToFeatureType(), feature.geometry);
     }
@@ -26,11 +26,16 @@ public:
         return optional<mbgl::Value>();
     }
 };
-
-
+   
+    
 EvaluationResult Expression::evaluate(optional<float> zoom, const Feature& feature, optional<double> colorRampParameter) const {
     GeoJSONFeature f(feature);
-    return this->evaluate(EvaluationContext(zoom, &f, colorRampParameter));
+    return this->evaluate(EvaluationContext(zoom,  &f, colorRampParameter));
+}
+
+EvaluationResult Expression::evaluate(optional<double> accumulated, const Feature& feature) const{
+    GeoJSONFeature f(feature);
+    return this->evaluate(EvaluationContext(accumulated,&f));
 }
 
 } // namespace expression
