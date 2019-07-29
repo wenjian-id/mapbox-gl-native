@@ -9,7 +9,7 @@ PropertyExpressionBase::PropertyExpressionBase(std::unique_ptr<expression::Expre
     isZoomConstant_ = expression::isZoomConstant(*expression);
     isFeatureConstant_ = expression::isFeatureConstant(*expression);
 }
-
+    
 bool PropertyExpressionBase::isZoomConstant() const noexcept {
     return isZoomConstant_;
 }

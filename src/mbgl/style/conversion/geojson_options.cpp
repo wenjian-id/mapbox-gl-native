@@ -88,7 +88,7 @@ optional<GeoJSONOptions> Converter<GeoJSONOptions>::operator()(const Convertible
         }
     }
 
-    return { options };
+    return { std::move(options) };
 }
 
 } // namespace conversion

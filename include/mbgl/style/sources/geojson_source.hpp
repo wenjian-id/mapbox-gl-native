@@ -1,10 +1,12 @@
 #pragma once
 
+#include <mbgl/style/expression/expression.hpp>
 #include <mbgl/style/source.hpp>
 #include <mbgl/util/constants.hpp>
 #include <mbgl/util/geojson.hpp>
 #include <mbgl/util/optional.hpp>
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -28,7 +30,10 @@ struct GeoJSONOptions {
     bool cluster = false;
     uint16_t clusterRadius = 50;
     uint8_t clusterMaxZoom = 17;
-    std::unordered_map<std::string, std::pair<std::string, std::string>> clusterProperties;
+    using ClusterExpression = std::pair<std::shared_ptr<mbgl::style::expression::Expression>,
+                                        std::shared_ptr<mbgl::style::expression::Expression>>;
+    using ClusterProperties = std::unordered_map<std::string, ClusterExpression>;
+    ClusterProperties clusterProperties;
 };
 
 class GeoJSONSource : public Source {

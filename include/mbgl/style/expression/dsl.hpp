@@ -23,7 +23,7 @@ std::vector<std::unique_ptr<Expression>> vec(Args... args) {
     util::ignore({ (result.push_back(std::move(args)), 0)... });
     return result;
 }
-
+std::unique_ptr<Expression> createExpression(const char* expr);
 std::unique_ptr<Expression> error(std::string);
 
 std::unique_ptr<Expression> literal(const char* value);
