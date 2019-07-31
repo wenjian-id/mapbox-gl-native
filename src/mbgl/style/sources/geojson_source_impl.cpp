@@ -4,8 +4,6 @@
 #include <mbgl/util/string.hpp>
 
 #include <mapbox/geojsonvt.hpp>
-#include <mbgl/style/conversion/json.hpp>
-#include <rapidjson/document.h>
 #include <supercluster.hpp>
 
 #include <cmath>
@@ -15,7 +13,8 @@ namespace style {
 
 class GeoJSONVTData : public GeoJSONData {
 public:
-    GeoJSONVTData(const GeoJSON& geoJSON, const mapbox::geojsonvt::Options& options)
+    GeoJSONVTData(const GeoJSON& geoJSON, 
+                  const mapbox::geojsonvt::Options& options)
         : impl(geoJSON, options) {
     }
 
@@ -28,7 +27,9 @@ public:
     }
 
     mapbox::feature::feature_collection<double>
-    getLeaves(const std::uint32_t, const std::uint32_t, const std::uint32_t) final {
+    getLeaves(const std::uint32_t, 
+              const std::uint32_t, 
+              const std::uint32_t) final {
         return {};
     }
 
@@ -44,8 +45,7 @@ class SuperclusterData : public GeoJSONData {
 public:
     SuperclusterData(const mapbox::feature::feature_collection<double>& features,
                      const mapbox::supercluster::Options& options)
-        : impl(features, options) {
-    }
+        : impl(features, options) {}
 
     mapbox::feature::feature_collection<int16_t> getTile(const CanonicalTileID& tileID) final {
         return impl.getTile(tileID.z, tileID.x, tileID.y);
@@ -96,7 +96,6 @@ GeoJSONSource::Impl::Impl(const Impl& other, const GeoJSON& geoJSON) : Source::I
         clusterOptions.maxZoom = options.clusterMaxZoom;
         clusterOptions.extent = util::EXTENT;
         clusterOptions.radius = ::round(scale * options.clusterRadius);
-
         clusterOptions.map =
             [&](const mapbox::feature::property_map& properties) -> mapbox::feature::property_map {
             mapbox::feature::property_map ret{};
@@ -110,11 +109,13 @@ GeoJSONSource::Impl::Impl(const Impl& other, const GeoJSON& geoJSON) : Source::I
         clusterOptions.reduce = [&](mapbox::feature::property_map& toReturn,
                                     const mapbox::feature::property_map& toFill) {
             for (const auto& p : options.clusterProperties) {
+                if(toFill.count(p.first) == 0){
+                    continue;
+                }
                 auto feature = mapbox::feature::feature<double>();
                 feature.properties = toFill;
                 optional<mapbox::feature::value> accumulated(toReturn[p.first]);
-                toReturn[p.first] = EvaluateFeature<mapbox::feature::value>(accumulated, feature, p.second.second);
-                
+                toReturn[p.first] = EvaluateFeature<mapbox::feature::value>(accumulated, feature, p.second.second);    
             }
         };
         data = std::make_shared<SuperclusterData>(

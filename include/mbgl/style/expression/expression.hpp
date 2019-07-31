@@ -23,8 +23,7 @@ class EvaluationError {
 public:
     std::string message;
 };
-
-    
+   
 class EvaluationContext {
 public:
     EvaluationContext() = default;
@@ -49,7 +48,6 @@ public:
     optional<mbgl::Value> accumulated;
     GeometryTileFeature const * feature = nullptr;
     optional<double> colorRampParameter;
-
     // Contains formatted section object, std::unordered_map<std::string, Value>.
     const Value* formattedSection = nullptr;
 };

@@ -2,14 +2,12 @@
 #include <mbgl/style/conversion_impl.hpp>
 #include <mbgl/style/expression/dsl.hpp>
 #include <sstream>
-#include <utility>
 
 namespace mbgl {
 namespace style {
 namespace conversion {
 
-optional<GeoJSONOptions> Converter<GeoJSONOptions>::operator()(const Convertible& value,
-                                                               Error& error) const {
+optional<GeoJSONOptions> Converter<GeoJSONOptions>::operator()(const Convertible& value, Error& error) const {
     GeoJSONOptions options;
 
     const auto minzoomValue = objectMember(value, "minzoom");
@@ -103,7 +101,7 @@ optional<GeoJSONOptions> Converter<GeoJSONOptions>::operator()(const Convertible
             *clusterProperties,
             [&](const std::string& k,
                 const mbgl::style::conversion::Convertible& v) -> optional<conversion::Error> {
-                // "key" : [operator, [mapExpression]]
+                // Each property shall be formed as ["key" : [operator, [mapExpression]]]
                 if (!isArray(v) || arrayLength(v) != 2) {
                     error.message =
                         "GeoJSON source clusterProperties member must be an array with length of 2";
@@ -117,7 +115,7 @@ optional<GeoJSONOptions> Converter<GeoJSONOptions>::operator()(const Convertible
                 }
                 auto map = expression::dsl::createExpression(arrayMember(v, 1));
                 std::stringstream ss;
-                // [operator, ['accumulated'], ['get', key]]
+                // Reformulate reduce expression to [operator, ['accumulated'], ['get', key]]
                 ss << std::string(R"([")") << *reduceOp
                    << std::string(R"(", ["accumulated"], ["get", ")") << k << std::string(R"("]])");
                 auto reduce = expression::dsl::createExpression(ss.str().c_str());

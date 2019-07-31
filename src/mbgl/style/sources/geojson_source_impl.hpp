@@ -29,7 +29,7 @@ public:
     Impl(std::string id, optional<GeoJSONOptions>);
     Impl(const GeoJSONSource::Impl&, const GeoJSON&);
     ~Impl() final;
- 
+
     Range<uint8_t> getZoomRange() const;
     std::weak_ptr<GeoJSONData> getData() const;
 

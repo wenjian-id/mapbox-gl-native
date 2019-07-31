@@ -883,7 +883,7 @@ MAPBOX_ETERNAL_CONSTEXPR const auto compoundExpressionRegistry = mapbox::eternal
     { "zoom", zoomCompoundExpression },
     { "heatmap-density", heatmapDensityCompoundExpression },
     { "line-progress", lineProgressCompoundExpression },
-    { "accumulated", accumulatedCompoundExpression},
+    { "accumulated", accumulatedCompoundExpression },
     { "has", hasContextCompoundExpression },
     { "has", hasObjectCompoundExpression },
     { "get", getContextCompoundExpression },
