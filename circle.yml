@@ -477,7 +477,9 @@ jobs:
       - install-dependencies: { mason: false, ccache: false }
       - run:
           name: Initialize submodules
-          command: git submodule update --init
+          command: |
+            git submodule update --init
+            git submodule foreach git submodule update --init
       - run:
           name: Verify submodule pin
           command: scripts/nitpick/submodule-pin.js
@@ -720,7 +722,9 @@ jobs:
       - checkout
       - run:
           name: Checkout submodules
-          command: git submodule update --init
+          command: |
+            git submodule update --init
+            git submodule foreach git submodule update --init
       - run:
           name: Build Android library
           command: |
@@ -890,9 +894,7 @@ jobs:
       - run:
           name: Upload coverage results to codecov.io
           command: |
-            curl -sSfL -o codecov https://codecov.io/bash
-            chmod +x codecov
-            ./codecov -c
+            bash <(curl -sSfL https://codecov.io/bash) || echo 'Codecov failed to upload'
       - run:
           name: Upload coverage metrics to s3
           command: |
@@ -1072,9 +1074,18 @@ jobs:
             if [[ $CIRCLE_BRANCH == master ]]; then
               platform/ios/scripts/deploy-snapshot.sh
             fi
+          background: true
+      - deploy:
+          name: Deploy to Mapbox CocoaPods spec repo
+          command: |
+            if [[ $CIRCLE_BRANCH == master ]]; then
+              platform/ios/scripts/deploy-to-cocoapods.sh
+            fi
+          background: true
       - run:
           name: Record size
           command: platform/ios/scripts/metrics.sh
+          background: true
       - run:
           name: Trigger metrics
           command: |
@@ -1085,6 +1096,7 @@ jobs:
                 echo "MOBILE_METRICS_TOKEN not provided"
               fi
             fi
+          background: true
       - save-dependencies
       - collect-xcode-build-logs
       - upload-xcode-build-logs
@@ -1110,12 +1122,22 @@ jobs:
       - install-dependencies
       - install-ios-packaging-dependencies
       - run:
+          name: Trigger external deploy steps
+          command: |
+            export VERSION_TAG=${CIRCLE_TAG}
+            export GITHUB_TOKEN=${DANGER_GITHUB_API_TOKEN}
+            platform/ios/scripts/trigger-external-deploy-steps.sh
+          background: true
+      - run:
           name: Build, package, and upload iOS release
           command: |
             export VERSION_TAG=${CIRCLE_TAG}
             export GITHUB_TOKEN=${DANGER_GITHUB_API_TOKEN}
             platform/ios/scripts/deploy-packages.sh
-            platform/ios/scripts/trigger-external-deploy-steps.sh
+      - deploy:
+          name: Deploy to CocoaPods
+          command: platform/ios/scripts/deploy-to-cocoapods.sh
+          background: true
       - save-dependencies
       - collect-xcode-build-logs
       - upload-xcode-build-logs
