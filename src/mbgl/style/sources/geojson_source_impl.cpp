@@ -13,10 +13,9 @@ namespace style {
 
 class GeoJSONVTData : public GeoJSONData {
 public:
-    GeoJSONVTData(const GeoJSON& geoJSON, 
+    GeoJSONVTData(const GeoJSON& geoJSON,
                   const mapbox::geojsonvt::Options& options)
-        : impl(geoJSON, options) {
-    }
+        : impl(geoJSON, options) {}
 
     mapbox::feature::feature_collection<int16_t> getTile(const CanonicalTileID& tileID) final {
         return impl.getTile(tileID.z, tileID.x, tileID.y).features;
@@ -26,10 +25,9 @@ public:
         return {};
     }
 
-    mapbox::feature::feature_collection<double>
-    getLeaves(const std::uint32_t, 
-              const std::uint32_t, 
-              const std::uint32_t) final {
+    mapbox::feature::feature_collection<double> getLeaves(const std::uint32_t,
+                                                          const std::uint32_t,
+                                                          const std::uint32_t) final {
         return {};
     }
 

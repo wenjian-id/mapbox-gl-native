@@ -5,6 +5,7 @@
 #include <mbgl/style/expression/interpolate.hpp>
 #include <mbgl/style/expression/step.hpp>
 #include <mbgl/style/expression/find_zoom_curve.hpp>
+#include <mbgl/util/range.hpp>
 
 namespace mbgl {
 namespace style {
@@ -34,7 +35,8 @@ class PropertyExpression final : public PropertyExpressionBase {
 public:
     // Second parameter to be used only for conversions from legacy functions.
     PropertyExpression(std::unique_ptr<expression::Expression> expression_, optional<T> defaultValue_ = nullopt)
-        : PropertyExpressionBase(std::move(expression_)), defaultValue(std::move(defaultValue_)) {
+        : PropertyExpressionBase(std::move(expression_)),
+          defaultValue(std::move(defaultValue_)) {
     }
     T evaluate(const expression::EvaluationContext& context, T finalDefaultValue = T()) const {
         assert(canEvaluateWith(context));
@@ -62,7 +64,7 @@ public:
         return expression::fromExpressionValues<T>(expression->possibleOutputs());
     }
 
-    friend bool operator==(const PropertyExpression& lhs, 
+    friend bool operator==(const PropertyExpression& lhs,
                            const PropertyExpression& rhs) {
         return *lhs.expression == *rhs.expression;
     }

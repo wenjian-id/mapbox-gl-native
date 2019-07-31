@@ -23,7 +23,7 @@ class EvaluationError {
 public:
     std::string message;
 };
-   
+
 class EvaluationContext {
 public:
     EvaluationContext() = default;
