@@ -6,6 +6,7 @@
 #include <mbgl/style/expression/type.hpp>
 #include <mbgl/style/expression/value.hpp>
 #include <mbgl/style/expression/parsing_context.hpp>
+#include <mbgl/util/feature.hpp>
 
 #include <array>
 #include <vector>
@@ -32,8 +33,8 @@ public:
     EvaluationContext(float zoom_, GeometryTileFeature const * feature_) :
         zoom(zoom_), feature(feature_)
     {}
-    EvaluationContext(optional<double> accumulated_, GeometryTileFeature const * feature_) :
-    accumulated(std::move(accumulated_)), feature(feature_)
+    EvaluationContext(optional<mbgl::Value> accumulated_, GeometryTileFeature const * feature_) :
+        accumulated(std::move(accumulated_)), feature(feature_)
     {}
     EvaluationContext(optional<float> zoom_, GeometryTileFeature const * feature_, optional<double> colorRampParameter_) :
         zoom(std::move(zoom_)), feature(feature_), colorRampParameter(std::move(colorRampParameter_))
@@ -45,7 +46,7 @@ public:
     };
 
     optional<float> zoom;
-    optional<double> accumulated;
+    optional<mbgl::Value> accumulated;
     GeometryTileFeature const * feature = nullptr;
     optional<double> colorRampParameter;
 
@@ -168,7 +169,7 @@ public:
     type::Type getType() const { return type; };
     
     EvaluationResult evaluate(optional<float> zoom, const Feature& feature, optional<double> colorRampParameter) const;
-    EvaluationResult evaluate(optional<double> accumulated, const Feature& feature) const;
+    EvaluationResult evaluate(optional<mbgl::Value> accumulated, const Feature& feature) const;
     /**
      * Statically analyze the expression, attempting to enumerate possible outputs. Returns
      * an array of values plus the sentinel null optional value, used to indicate that the

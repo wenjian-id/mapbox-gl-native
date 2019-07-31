@@ -1,11 +1,15 @@
 #include <mbgl/style/conversion/geojson_options.hpp>
 #include <mbgl/style/conversion_impl.hpp>
+#include <mbgl/style/expression/dsl.hpp>
+#include <sstream>
+#include <utility>
 
 namespace mbgl {
 namespace style {
 namespace conversion {
 
-optional<GeoJSONOptions> Converter<GeoJSONOptions>::operator()(const Convertible& value, Error& error) const {
+optional<GeoJSONOptions> Converter<GeoJSONOptions>::operator()(const Convertible& value,
+                                                               Error& error) const {
     GeoJSONOptions options;
 
     const auto minzoomValue = objectMember(value, "minzoom");
@@ -83,9 +87,49 @@ optional<GeoJSONOptions> Converter<GeoJSONOptions>::operator()(const Convertible
         if (toBool(*lineMetricsValue)) {
             options.lineMetrics = *toBool(*lineMetricsValue);
         } else {
-            error = { "GeoJSON source lineMetrics value must be a boolean" };
+            error.message = "GeoJSON source lineMetrics value must be a boolean";
             return nullopt;
         }
+    }
+
+    const auto clusterProperties = objectMember(value, "clusterProperties");
+    if (clusterProperties) {
+        if (!isObject(*clusterProperties)) {
+            error.message = "GeoJSON source clusterProperties value must be an object";
+            return nullopt;
+        }
+        GeoJSONOptions::ClusterProperties result;
+        eachMember(
+            *clusterProperties,
+            [&](const std::string& k,
+                const mbgl::style::conversion::Convertible& v) -> optional<conversion::Error> {
+                // "key" : [operator, [mapExpression]]
+                if (!isArray(v) || arrayLength(v) != 2) {
+                    error.message =
+                        "GeoJSON source clusterProperties member must be an array with length of 2";
+                    return {};
+                }
+                auto reduceOp = toString(arrayMember(v, 0));
+                if (!reduceOp) {
+                    error.message =
+                        "GeoJSON source clusterProperties member must contain a valid operator";
+                    return {};
+                }
+                auto map = expression::dsl::createExpression(arrayMember(v, 1));
+                std::stringstream ss;
+                // [operator, ['accumulated'], ['get', key]]
+                ss << std::string(R"([")") << *reduceOp
+                   << std::string(R"(", ["accumulated"], ["get", ")") << k << std::string(R"("]])");
+                auto reduce = expression::dsl::createExpression(ss.str().c_str());
+                if (map && reduce) {
+                    result.emplace(k, std::make_pair(std::move(map), std::move(reduce)));
+                }
+                return {};
+            });
+        if (!error.message.empty()) {
+            return nullopt;
+        }
+        options.clusterProperties = std::move(result);
     }
 
     return { std::move(options) };

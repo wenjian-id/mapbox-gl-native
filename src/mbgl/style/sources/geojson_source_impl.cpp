@@ -71,7 +71,7 @@ private:
 
 template <class T>
 T EvaluateFeature(optional<T> accumulated,
-                  mapbox::feature::feature<T>& f,
+                  mapbox::feature::feature<double>& f,
                   const std::shared_ptr<expression::Expression> expression,
                   T finalDefaultValue = T()) {
     const expression::EvaluationResult result = expression->evaluate(accumulated, f);
@@ -82,9 +82,9 @@ T EvaluateFeature(optional<T> accumulated,
     return finalDefaultValue;
 }
 
-GeoJSONSource::Impl::Impl(std::string id_, GeoJSONOptions options_)
+GeoJSONSource::Impl::Impl(std::string id_, optional<GeoJSONOptions> options_)
     : Source::Impl(SourceType::GeoJSON, std::move(id_)) {
-    options = std::move(options_);
+        options = options_ ? std::move(*options_) : GeoJSONOptions{};
 }
 
 GeoJSONSource::Impl::Impl(const Impl& other, const GeoJSON& geoJSON) : Source::Impl(other) {
@@ -103,7 +103,7 @@ GeoJSONSource::Impl::Impl(const Impl& other, const GeoJSON& geoJSON) : Source::I
             for (const auto& p : options.clusterProperties) {
                 auto feature = mapbox::feature::feature<double>();
                 feature.properties = properties;
-                ret[p.first] = EvaluateFeature<double>(nullopt, feature, p.second.first);
+                ret[p.first] = EvaluateFeature<mapbox::feature::value>(nullopt, feature, p.second.first);
             }
             return ret;
         };
@@ -112,9 +112,9 @@ GeoJSONSource::Impl::Impl(const Impl& other, const GeoJSON& geoJSON) : Source::I
             for (const auto& p : options.clusterProperties) {
                 auto feature = mapbox::feature::feature<double>();
                 feature.properties = toFill;
-                optional<double> accumulated(toReturn[p.first].get<double>());
-                toReturn[p.first] = EvaluateFeature<double>(accumulated, feature, p.second.second);
-                ;
+                optional<mapbox::feature::value> accumulated(toReturn[p.first]);
+                toReturn[p.first] = EvaluateFeature<mapbox::feature::value>(accumulated, feature, p.second.second);
+                
             }
         };
         data = std::make_shared<SuperclusterData>(

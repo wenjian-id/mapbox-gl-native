@@ -38,7 +38,7 @@ struct GeoJSONOptions {
 
 class GeoJSONSource : public Source {
 public:
-    GeoJSONSource(const std::string& id, const GeoJSONOptions& = {});
+    GeoJSONSource(const std::string& id, optional<GeoJSONOptions> = nullopt);
     ~GeoJSONSource() final;
 
     void setURL(const std::string& url);

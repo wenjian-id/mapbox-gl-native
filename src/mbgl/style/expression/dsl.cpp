@@ -30,15 +30,20 @@ std::unique_ptr<Expression> createExpression(const char* expr) {
     using JSValue = rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>;
     rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> document;
     document.Parse<0>(expr);
-    assert(!document.HasParseError());
+    if (document.HasParseError()) return nullptr;
     
-    //        optional<expression::TypeAnnotationOption> typeAnnotationOption;
+    //optional<expression::TypeAnnotationOption> typeAnnotationOption;
     const JSValue* expression = &document;
     expression::ParsingContext ctx;
     expression::ParseResult parsed =
     ctx.parseExpression(mbgl::style::conversion::Convertible(expression));
-    assert(parsed);
-    return std::move(*parsed);
+    return parsed ? std::move(*parsed) : nullptr;
+}
+
+std::unique_ptr<Expression> createExpression(const mbgl::style::conversion::Convertible& expr) {
+    expression::ParsingContext ctx;
+    expression::ParseResult parsed = ctx.parseExpression(expr);
+    return parsed ? std::move(*parsed) : nullptr;
 }
 
 std::unique_ptr<Expression> error(std::string message) {

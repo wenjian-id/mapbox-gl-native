@@ -33,7 +33,7 @@ EvaluationResult Expression::evaluate(optional<float> zoom, const Feature& featu
     return this->evaluate(EvaluationContext(zoom,  &f, colorRampParameter));
 }
 
-EvaluationResult Expression::evaluate(optional<double> accumulated, const Feature& feature) const{
+    EvaluationResult Expression::evaluate(optional<mbgl::Value> accumulated, const Feature& feature) const{
     GeoJSONFeature f(feature);
     return this->evaluate(EvaluationContext(accumulated,&f));
 }
