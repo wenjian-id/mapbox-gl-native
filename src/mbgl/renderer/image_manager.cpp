@@ -81,7 +81,6 @@ void ImageManager::removeImage(const std::string& id) {
         requestedImages.erase(requestedIt);
     }
     images.erase(it);
-    updatedImageVersions.erase(id);
 }
 
 const style::Image::Impl* ImageManager::getImage(const std::string& id) const {
