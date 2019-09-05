@@ -797,7 +797,7 @@ jobs:
       LIBSYSCONFCPUS: 4
       JOBS: 4
       BUILDTYPE: RelWithDebInfo
-      WITH_EGL: 1
+      WITH_OSMESA: 1
       WITH_CXX11ABI: 0
     steps:
       - install-dependencies
