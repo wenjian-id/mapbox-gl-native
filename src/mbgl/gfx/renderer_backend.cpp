@@ -14,7 +14,6 @@ gfx::Context& RendererBackend::getContext() {
     assert(BackendScope::exists());
     std::call_once(initialized, [this] {
         context = createContext();
-        std::clog << "context created " << context << "\n";
     });
     assert(context);
     return *context;
