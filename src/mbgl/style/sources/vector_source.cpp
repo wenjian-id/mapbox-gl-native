@@ -7,6 +7,7 @@
 #include <mbgl/util/mapbox.hpp>
 #include <mbgl/util/constants.hpp>
 #include <mbgl/util/exception.hpp>
+#include <iostream>
 
 namespace mbgl {
 namespace style {
@@ -67,7 +68,7 @@ void VectorSource::loadDescription(FileSource& fileSource) {
 
             baseImpl = makeMutable<Impl>(impl(), *tileset);
             loaded = true;
-
+            std::clog << "calling onSourceLoaded\n";
             observer->onSourceLoaded(*this);
 
             if (changed) {

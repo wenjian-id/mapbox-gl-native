@@ -55,9 +55,9 @@ public:
     // Memory
     void reduceMemoryUse();
 
-private:
     class Impl;
     std::unique_ptr<Impl> impl;
+private:
 };
 
 } // namespace mbgl

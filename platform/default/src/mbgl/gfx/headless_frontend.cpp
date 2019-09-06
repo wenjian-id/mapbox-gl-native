@@ -6,6 +6,10 @@
 #include <mbgl/map/map.hpp>
 #include <mbgl/map/transform_state.hpp>
 #include <mbgl/util/run_loop.hpp>
+#include <mbgl/renderer/renderer.hpp>
+#include <mbgl/renderer/renderer_impl.hpp>
+#include <mbgl/renderer/render_tree.hpp>
+#include <iostream>
 
 namespace mbgl {
 
@@ -43,12 +47,26 @@ HeadlessFrontend::~HeadlessFrontend() = default;
 
 void HeadlessFrontend::reset() {
     assert(renderer);
+    // TODO: watch out, map::impl calls this
     renderer.reset();
 }
 
 void HeadlessFrontend::update(std::shared_ptr<UpdateParameters> updateParameters_) {
     updateParameters = updateParameters_;
     asyncInvalidate.send();
+}
+
+PremultipliedImage HeadlessFrontend::updateSync(std::shared_ptr<UpdateParameters> updateParameters_) {
+    gfx::BackendScope guard { *getBackend() };
+    auto &orchestrator = renderer->impl->orchestrator;
+    auto const& params = *updateParameters_;
+    std::unique_ptr<RenderTree> renderTree = nullptr;
+    while (!renderTree) {
+       std::clog << "RT\n";
+       util::RunLoop::Get()->runOnce();
+       renderTree = orchestrator.createRenderTree(params);
+    }
+    return backend->readStillImage();
 }
 
 void HeadlessFrontend::setObserver(RendererObserver& observer_) {

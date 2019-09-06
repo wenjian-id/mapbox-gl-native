@@ -94,10 +94,12 @@ public:
     bool loaded = false;
     bool spriteLoaded = false;
 
+    FileSource& fileSource;
+    void onSpriteLoaded(std::vector<std::unique_ptr<Image>>&&) override;
+
 private:
     void parse(const std::string&);
 
-    FileSource& fileSource;
 
     std::string url;
     std::string json;
@@ -117,7 +119,6 @@ private:
     CameraOptions defaultCamera;
 
     // SpriteLoaderObserver implementation.
-    void onSpriteLoaded(std::vector<std::unique_ptr<Image>>&&) override;
     void onSpriteError(std::exception_ptr) override;
 
     // SourceObserver implementation.

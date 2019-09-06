@@ -27,6 +27,7 @@ public:
 
     void reset() override;
     void update(std::shared_ptr<UpdateParameters>) override;
+    PremultipliedImage updateSync(std::shared_ptr<UpdateParameters>);
     void setObserver(RendererObserver&) override;
 
     Size getSize() const;

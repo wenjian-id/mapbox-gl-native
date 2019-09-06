@@ -14,6 +14,7 @@
 #include <mbgl/renderer/render_tree.hpp>
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/logging.hpp>
+#include <iostream>
 
 namespace mbgl {
 
@@ -44,6 +45,7 @@ void Renderer::Impl::setObserver(RendererObserver* observer_) {
 
 void Renderer::Impl::render(const RenderTree& renderTree) {
     if (renderState == RenderState::Never) {
+        std::clog << "RenderState::Never\n";
         observer->onWillStartRenderingMap();
     }
 
@@ -51,6 +53,7 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     const auto& renderTreeParameters = renderTree.getParameters();
 
     if (!staticData) {
+        std::clog << "creating static data\n";
         staticData = std::make_unique<RenderStaticData>(backend.getContext(), pixelRatio);
     }
     staticData->has3D = renderTreeParameters.has3D;
@@ -58,7 +61,9 @@ void Renderer::Impl::render(const RenderTree& renderTree) {
     auto& context = backend.getContext();
 
     // Blocks execution until the renderable is available.
+    std::clog << "Waiting\n";
     backend.getDefaultRenderable().wait();
+    std::clog << "DONE WAITING\n";
 
     PaintParameters parameters {
         context,

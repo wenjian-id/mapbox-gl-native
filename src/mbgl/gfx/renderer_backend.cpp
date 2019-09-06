@@ -13,6 +13,7 @@ RendererBackend::~RendererBackend() = default;
 gfx::Context& RendererBackend::getContext() {
     assert(BackendScope::exists());
     std::call_once(initialized, [this] {
+        std::clog << "create context\n";
         context = createContext();
     });
     assert(context);

@@ -12,7 +12,7 @@
 #include <mbgl/util/traits.hpp>
 #include <mbgl/util/std.hpp>
 #include <mbgl/util/logging.hpp>
-
+#include <iostream>
 #include <cstring>
 
 namespace mbgl {
@@ -286,7 +286,7 @@ std::unique_ptr<uint8_t[]> Context::readFramebuffer(const Size size, const gfx::
     // When reading data from the framebuffer, make sure that we are storing the values
     // tightly packed into the buffer to avoid buffer overruns.
     pixelStorePack = { 1 };
-
+    std::clog << data.get() << " " << size.width << " " << size.height << "\n";
     MBGL_CHECK_ERROR(glReadPixels(0, 0, size.width, size.height,
                                   Enum<gfx::TexturePixelType>::to(format), GL_UNSIGNED_BYTE,
                                   data.get()));

@@ -22,17 +22,17 @@ public:
          optional<std::string> localFontFamily_);
     ~Impl();
 
+    // TODO: Move orchestrator to Map::Impl.
+    RenderOrchestrator orchestrator;
+    void render(const RenderTree&);
 private:
     friend class Renderer;
 
     void setObserver(RendererObserver*);
 
-    void render(const RenderTree&);
 
     void reduceMemoryUse();
 
-    // TODO: Move orchestrator to Map::Impl.
-    RenderOrchestrator orchestrator;
 
     gfx::RendererBackend& backend;
 
