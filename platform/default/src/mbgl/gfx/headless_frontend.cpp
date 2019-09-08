@@ -62,10 +62,10 @@ PremultipliedImage HeadlessFrontend::updateSync(std::shared_ptr<UpdateParameters
     auto const& params = *updateParameters_;
     std::unique_ptr<RenderTree> renderTree = nullptr;
     while (!renderTree) {
-       std::clog << "RT\n";
-       util::RunLoop::Get()->runOnce();
-       renderTree = orchestrator.createRenderTree(params);
+        util::RunLoop::Get()->runOnce();
+        renderTree = orchestrator.createRenderTree(params);
     }
+    renderer->impl->render(*renderTree);
     return backend->readStillImage();
 }
 
