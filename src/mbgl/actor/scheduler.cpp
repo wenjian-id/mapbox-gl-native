@@ -22,21 +22,17 @@ Scheduler* Scheduler::GetCurrent() {
 
 // static
 std::shared_ptr<Scheduler> Scheduler::GetBackground() {
-    // static std::weak_ptr<Scheduler> weak;
-    // static std::mutex mtx;
-    // 
-    // std::lock_guard<std::mutex> lock(mtx);
-    // std::shared_ptr<Scheduler> scheduler = weak.lock();
-    // 
-    // if (!scheduler) {
-    //     std::clog << "creating scheduler\n";
-    //     weak = scheduler = std::make_shared<ThreadPool>(4);
-    // } else {
-    //     std::clog << "re-using scheduler\n";      
-    // }
-    // 
-    // return scheduler;
-    return std::make_shared<ThreadPool>(2);
+    static std::weak_ptr<Scheduler> weak;
+    static std::mutex mtx;
+
+    std::lock_guard<std::mutex> lock(mtx);
+    std::shared_ptr<Scheduler> scheduler = weak.lock();
+
+    if (!scheduler) {
+        //std::clog << "creating scheduler\n";
+        weak = scheduler = std::make_shared<ThreadPool>(4);
+    }
+    return scheduler;
 }
 
 } //namespace mbgl
