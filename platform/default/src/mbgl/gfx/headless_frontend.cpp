@@ -49,6 +49,8 @@ void HeadlessFrontend::reset() {
     assert(renderer);
     // TODO: watch out, map::impl calls this
     renderer.reset();
+    optional<std::string> localFontFamily;
+    renderer = std::make_unique<Renderer>(*getBackend(), pixelRatio, localFontFamily);
 }
 
 void HeadlessFrontend::update(std::shared_ptr<UpdateParameters> updateParameters_) {
@@ -63,6 +65,7 @@ PremultipliedImage HeadlessFrontend::updateSync(std::shared_ptr<UpdateParameters
     std::unique_ptr<RenderTree> renderTree = nullptr;
     while (!renderTree) {
         util::RunLoop::Get()->runOnce();
+        std::clog << "reateRenderTree\n";
         renderTree = orchestrator.createRenderTree(params);
     }
     renderer->impl->render(*renderTree);

@@ -26,6 +26,7 @@
 #include <mbgl/util/math.hpp>
 #include <mbgl/util/string.hpp>
 #include <mbgl/util/logging.hpp>
+#include <iostream>
 
 namespace mbgl {
 
@@ -329,6 +330,8 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(const UpdatePar
 
     renderTreeParameters->loaded = updateParameters.styleLoaded && isLoaded();
     if (!isMapModeContinuous && !renderTreeParameters->loaded) {
+        // std::clog << "updateParameters.styleLoaded " << updateParameters.styleLoaded << "\n";
+        // std::clog << "isLoaded" << isLoaded() << "\n";
         return nullptr;
     }
 
@@ -614,13 +617,17 @@ bool RenderOrchestrator::hasTransitions(TimePoint timePoint) const {
 }
 
 bool RenderOrchestrator::isLoaded() const {
+    auto count = 0;
     for (const auto& entry: renderSources) {
+        count++;
         if (!entry.second->isLoaded()) {
+            // std::clog << "source not loaded " << count << " of " << renderSources.size() << "\n";
             return false;
         }
     }
 
     if (!imageManager->isLoaded()) {
+        std::clog << "imageManager not loaded\n";
         return false;
     }
 

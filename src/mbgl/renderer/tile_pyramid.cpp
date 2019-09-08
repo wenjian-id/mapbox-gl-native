@@ -16,6 +16,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 namespace mbgl {
 
@@ -25,6 +26,7 @@ static TileObserver nullObserver;
 
 TilePyramid::TilePyramid()
     : observer(&nullObserver) {
+      std::clog << "creating TilePyramid\n";
 }
 
 TilePyramid::~TilePyramid() = default;
@@ -60,6 +62,7 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
                          std::function<std::unique_ptr<Tile> (const OverscaledTileID&)> createTile) {
     // If we need a relayout, abandon any cached tiles; they're now stale.
     if (needsRelayout) {
+        std::clog << "needing relayout\n";
         cache.clear();
     }
 
