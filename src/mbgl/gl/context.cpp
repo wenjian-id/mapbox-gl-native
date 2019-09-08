@@ -14,6 +14,7 @@
 #include <mbgl/util/logging.hpp>
 
 #include <cstring>
+#include <iostream>
 
 namespace mbgl {
 namespace gl {
@@ -55,6 +56,7 @@ Context::Context(RendererBackend& backend_)
           MBGL_CHECK_ERROR(glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &value));
           return value;
       }()), backend(backend_) {
+        std::clog << "creating context here\n";
 }
 
 Context::~Context() {

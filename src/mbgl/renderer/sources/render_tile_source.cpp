@@ -46,7 +46,7 @@ void TileSourceRenderItem::render(PaintParameters& parameters) const {
 RenderTileSource::RenderTileSource(Immutable<style::Source::Impl> impl_)
     : RenderSource(std::move(impl_))
     , renderTiles(makeMutable<std::vector<RenderTile>>()) {
-      std::clog << "creating at RenderTileSource\n";
+      // std::clog << "creating at RenderTileSource\n";
     tilePyramid.setObserver(this);
 }
 

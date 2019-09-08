@@ -9,6 +9,7 @@
 #include <mbgl/programs/line_program.hpp>
 #include <mbgl/programs/raster_program.hpp>
 #include <mbgl/programs/symbol_program.hpp>
+#include <iostream>
 
 namespace mbgl {
 
@@ -17,6 +18,8 @@ Programs::Programs(gfx::Context& context_, const ProgramParameters& programParam
       clippingMask(context_, programParameters_),
       context(context_),
       programParameters(std::move(programParameters_)) {
+        
+        std::clog << "creating Programs\n";
 }
 
 Programs::~Programs() = default;

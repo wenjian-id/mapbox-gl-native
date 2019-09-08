@@ -25,6 +25,7 @@ public:
     // TODO: Move orchestrator to Map::Impl.
     RenderOrchestrator orchestrator;
     void render(const RenderTree&);
+    std::shared_ptr<RenderStaticData> staticData;
 private:
     friend class Renderer;
 
@@ -39,7 +40,6 @@ private:
     RendererObserver* observer;
 
     const float pixelRatio;
-    std::unique_ptr<RenderStaticData> staticData;
 
     enum class RenderState {
         Never,

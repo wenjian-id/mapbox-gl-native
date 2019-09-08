@@ -68,7 +68,7 @@ void VectorSource::loadDescription(FileSource& fileSource) {
 
             baseImpl = makeMutable<Impl>(impl(), *tileset);
             loaded = true;
-            std::clog << "calling onSourceLoaded\n";
+            // std::clog << "calling onSourceLoaded\n";
             observer->onSourceLoaded(*this);
 
             if (changed) {
