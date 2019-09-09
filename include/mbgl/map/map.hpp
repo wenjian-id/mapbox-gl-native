@@ -124,9 +124,9 @@ public:
     bool isFullyLoaded() const;
     void dumpDebugLogs() const;
 
-protected:
     class Impl;
     const std::unique_ptr<Impl> impl;
+protected:
 
     // For testing only.
     Map(std::unique_ptr<Impl>);
