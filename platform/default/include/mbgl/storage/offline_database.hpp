@@ -144,7 +144,32 @@ private:
 
     optional<uint64_t> offlineMapboxTileCount;
 
-    bool evict(uint64_t neededFreeSize);
+    class DatabaseSizeChangeStats {
+    public:
+        explicit DatabaseSizeChangeStats(OfflineDatabase*);
+
+        // Returns difference between current database size and
+        // database size at the time of creation of this object.
+        int64_t diff();
+
+        // Returns how many bytes were released comparing to a database
+        // size at the time of creation of this object.
+        uint64_t bytesReleased();
+
+    private:
+        uint64_t pageSize = 0u;
+        uint64_t pageCount = 0u;
+        uint64_t initialSize = 0u;
+        OfflineDatabase* db = nullptr;
+    };
+
+    friend class DatabaseSizeChangeStats;
+
+    // Lazily initializes currentAmbientCacheSize.
+    std::exception_ptr initAmbientCacheSize();
+    optional<uint64_t> currentAmbientCacheSize;
+    void updateAmbientCacheSize(DatabaseSizeChangeStats&);
+    bool evict(uint64_t neededFreeSize, DatabaseSizeChangeStats&);
 };
 
 } // namespace mbgl
