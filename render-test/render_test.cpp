@@ -11,6 +11,7 @@
 #include "metadata.hpp"
 #include "parser.hpp"
 #include "runner.hpp"
+#include <mbgl/util/logging.hpp>
 
 #define ANSI_COLOR_RED        "\x1b[31m"
 #define ANSI_COLOR_GREEN      "\x1b[32m"
@@ -182,17 +183,20 @@ int runRenderTests(int argc, char** argv) {
                 status = "passed";
                 color = "green";
                 stats.passedTests++;
+                mbgl::Log::Warning(mbgl::Event::General,ANSI_COLOR_RED "* passed %s" ANSI_COLOR_RESET "\n", id.c_str());
                 printf(ANSI_COLOR_GREEN "* passed %s" ANSI_COLOR_RESET "\n", id.c_str());
             } else if (errored) {
                 status = "errored";
                 color = "red";
                 stats.erroredTests++;
+                mbgl::Log::Warning(mbgl::Event::General, ANSI_COLOR_RED "* errored %s" ANSI_COLOR_RESET "\n", id.c_str());
                 printf(ANSI_COLOR_RED "* errored %s" ANSI_COLOR_RESET "\n", id.c_str());
                 printf(ANSI_COLOR_RED "* error: %s" ANSI_COLOR_RESET "\n", metadata.errorMessage.c_str());
             } else {
                 status = "failed";
                 color = "red";
                 stats.failedTests++;
+                mbgl::Log::Warning(mbgl::Event::General,ANSI_COLOR_RED "* failed %s" ANSI_COLOR_RESET "\n", id.c_str());
                 printf(ANSI_COLOR_RED "* failed %s" ANSI_COLOR_RESET "\n", id.c_str());
             }
         }
@@ -209,9 +213,11 @@ int runRenderTests(int argc, char** argv) {
         stats.erroredTests + stats.failedTests + stats.ignoreFailedTests + stats.ignorePassedTests + stats.passedTests;
 
     if (stats.passedTests) {
+        mbgl::Log::Warning(mbgl::Event::General, ANSI_COLOR_RED "%u passed (%.1lf%%)" ANSI_COLOR_RESET "\n", stats.passedTests, 100.0 * stats.passedTests / count);
         printf(ANSI_COLOR_GREEN "%u passed (%.1lf%%)" ANSI_COLOR_RESET "\n", stats.passedTests, 100.0 * stats.passedTests / count);
     }
     if (stats.ignorePassedTests) {
+         mbgl::Log::Warning(mbgl::Event::General, ANSI_COLOR_RED "%u passed but were ignored (%.1lf%%)" ANSI_COLOR_RESET "\n", stats.ignorePassedTests, 100.0 * stats.ignorePassedTests / count);
         printf(ANSI_COLOR_YELLOW "%u passed but were ignored (%.1lf%%)" ANSI_COLOR_RESET "\n", stats.ignorePassedTests, 100.0 * stats.ignorePassedTests / count);
     }
     if (stats.ignoreFailedTests) {
