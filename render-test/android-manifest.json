@@ -3,5 +3,6 @@
     "expectation_paths":[],
     "ignore_paths":["ignores/ignores.json", "ignores/linux-ignores.json"],
     "vendor_path":"vendor",
-    "asset_path": "."
+    "asset_path": "assets",
+    "result_path": "/sdcard/"
 }
