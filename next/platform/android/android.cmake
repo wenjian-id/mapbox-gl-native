@@ -299,8 +299,47 @@ add_executable(
     ${MBGL_ROOT}/platform/android/src/test/test_runner.cpp
 )
 
+target_link_libraries(
+    mbgl-test-runner
+    PRIVATE Mapbox::Base::jni.hpp mapbox-gl mbgl-test
+)
+
+add_executable(
+    mbgl-benchmark-runner
+    ${MBGL_ROOT}/platform/android/src/test/benchmark_runner.cpp ${MBGL_ROOT}/platform/android/src/test/runtime.cpp
+    ${MBGL_ROOT}/platform/android/src/test/runtime.hpp
+)
+
+target_link_libraries(
+    mbgl-benchmark-runner
+    PRIVATE Mapbox::Base::jni.hpp mapbox-gl mbgl-benchmark
+)
+
+add_library(
+    mbgl-render-test-runner SHARED
+    ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c
+    ${MBGL_ROOT}/platform/android/src/test/render_test_runner.cpp
+    ${MBGL_ROOT}/platform/default/src/mbgl/text/local_glyph_rasterizer.cpp
+    ${MBGL_ROOT}/platform/android/src/test/render_test_collator.cpp
+    ${MBGL_ROOT}/platform/android/src/test/render_test_number_format.cpp
+)
+
+target_include_directories(
+    mbgl-render-test-runner
+    PRIVATE ${ANDROID_NDK}/sources/android/native_app_glue ${MBGL_ROOT}/platform/android/src ${MBGL_ROOT}/src
+)
+
+target_link_libraries(
+    mbgl-render-test-runner
+    PRIVATE
+        Mapbox::Base::jni.hpp
+        android
+        log
+        mbgl-render-test
+)
+
 add_custom_command(
-    TARGET mbgl-test-runner PRE_BUILD
+    TARGET mbgl-render-test-runner PRE_BUILD
     COMMAND
         ${CMAKE_COMMAND}
         -E
@@ -401,7 +440,7 @@ add_custom_command(
         ${CMAKE_COMMAND}
         -E
         tar
-        "cf"
+        "cfv"
         "data.zip"
         --format=zip
         --files-from=${MBGL_ROOT}/render-test/android/app/src/main/assets/to_zip.txt
@@ -436,45 +475,6 @@ add_custom_command(
         remove
         ${MBGL_ROOT}/render-test/android/app/src/main/assets/android-manifest.json
     WORKING_DIRECTORY ${MBGL_ROOT}/render-test/android/app/src/main/assets
-)
-
-target_link_libraries(
-    mbgl-test-runner
-    PRIVATE Mapbox::Base::jni.hpp mapbox-gl mbgl-test
-)
-
-add_executable(
-    mbgl-benchmark-runner
-    ${MBGL_ROOT}/platform/android/src/test/benchmark_runner.cpp ${MBGL_ROOT}/platform/android/src/test/runtime.cpp
-    ${MBGL_ROOT}/platform/android/src/test/runtime.hpp
-)
-
-target_link_libraries(
-    mbgl-benchmark-runner
-    PRIVATE Mapbox::Base::jni.hpp mapbox-gl mbgl-benchmark
-)
-
-add_library(
-    mbgl-render-test-runner SHARED
-    ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c
-    ${MBGL_ROOT}/platform/android/src/test/render_test_runner.cpp
-    ${MBGL_ROOT}/platform/default/src/mbgl/text/local_glyph_rasterizer.cpp
-    ${MBGL_ROOT}/platform/android/src/test/render_test_collator.cpp
-    ${MBGL_ROOT}/platform/android/src/test/render_test_number_format.cpp
-)
-
-target_include_directories(
-    mbgl-render-test-runner
-    PRIVATE ${ANDROID_NDK}/sources/android/native_app_glue ${MBGL_ROOT}/platform/android/src ${MBGL_ROOT}/src
-)
-
-target_link_libraries(
-    mbgl-render-test-runner
-    PRIVATE
-        Mapbox::Base::jni.hpp
-        android
-        log
-        mbgl-render-test
 )
 
 # Android has no concept of MinSizeRel on android.toolchain.cmake and provides configurations tuned for binary size. We can push it a bit
