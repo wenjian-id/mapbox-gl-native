@@ -204,7 +204,7 @@ int runRenderTests(int argc, char** argv) {
         metadatas.push_back(std::move(metadata));
     }
     const auto resultPath =
-        manifest.getResultPath() + "/" + (testNames.empty() ? "render-tests" : testNames.front()) + "_index.html";
+        manifest.getManifestPath() + "/" + (testNames.empty() ? "render-tests" : testNames.front()) + "_index.html";
     std::string resultsHTML = createResultPage(stats, metadatas, shuffle, seed);
     mbgl::util::write_file(resultPath, resultsHTML);
 
