@@ -385,7 +385,7 @@ mbgl::optional<Manifest> ManifestParser::parseManifest(const std::string& manife
         manifest.manifestPath.pop_back();
     }
     if (manifest.resultPath.empty()) {
-        manifest.resultPath = manifest.testRootPath;
+        manifest.resultPath = manifest.manifestPath;
     } else if (manifest.resultPath.back() == '/') {
         manifest.resultPath.pop_back();
     }

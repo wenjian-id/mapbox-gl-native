@@ -342,139 +342,41 @@ add_custom_command(
     TARGET mbgl-render-test-runner PRE_BUILD
     COMMAND
         ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/mapbox-gl-js/test/integration/render-tests
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/render-tests
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/mapbox-gl-js/test/integration/query-tests
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/query-tests
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/mapbox-gl-js/test/integration/tiles
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/assets/tiles
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/mapbox-gl-js/test/integration/glyphs
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/assets/glyphs
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/mapbox-gl-js/test/integration/styles
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/assets/styles
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/mapbox-gl-js/test/integration/tilesets
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/assets/tilesets
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/mapbox-gl-js/test/integration/image
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/assets/image
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/mapbox-gl-js/test/integration/video
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/assets/video
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/mapbox-gl-js/test/integration/data
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/assets/data
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/mapbox-gl-js/test/integration/geojson
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/assets/geojson
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/mapbox-gl-js/test/integration/sprites
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/assets/sprites
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/vendor/mapbox-gl-styles/styles
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/vendor/mapbox-gl-styles/styles
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        copy_directory
-        ${MBGL_ROOT}/vendor/mapbox-gl-styles/sprites
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/vendor/mapbox-gl-styles/sprites
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
+        -E     
         copy
         ${MBGL_ROOT}/render-test/android-manifest.json
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/android-manifest.json
+        ${MBGL_ROOT}/android-manifest.json
     COMMAND
         ${CMAKE_COMMAND}
         -E
         copy
         ${MBGL_ROOT}/platform/node/test/ignores.json
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/ignores/ignores.json
+        ${MBGL_ROOT}/ignores/ignores.json
     COMMAND
         ${CMAKE_COMMAND}
         -E
         copy
         ${MBGL_ROOT}/render-test/linux-ignores.json
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/ignores/linux-ignores.json
+        ${MBGL_ROOT}/ignores/linux-ignores.json
     COMMAND
         ${CMAKE_COMMAND}
         -E
         tar
-        "cfv"
-        "data.zip"
+        "cf"
+        "render-test/android/app/src/main/assets/data.zip"
         --format=zip
-        --files-from=${MBGL_ROOT}/render-test/android/app/src/main/assets/to_zip.txt
+        --files-from=render-test/android/app/src/main/assets/to_zip.txt
     COMMAND
         ${CMAKE_COMMAND}
         -E
         remove_directory
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/vendor
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        remove_directory
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/assets
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        remove_directory
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/render-tests
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        remove_directory
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/query-tests
-    COMMAND
-        ${CMAKE_COMMAND}
-        -E
-        remove_directory
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/ignores
+        ${MBGL_ROOT}/ignores
     COMMAND
         ${CMAKE_COMMAND}
         -E
         remove
-        ${MBGL_ROOT}/render-test/android/app/src/main/assets/android-manifest.json
-    WORKING_DIRECTORY ${MBGL_ROOT}/render-test/android/app/src/main/assets
+        ${MBGL_ROOT}/android-manifest.json
+    WORKING_DIRECTORY ${MBGL_ROOT}
 )
 
 # Android has no concept of MinSizeRel on android.toolchain.cmake and provides configurations tuned for binary size. We can push it a bit
