@@ -119,6 +119,8 @@ public:
     void moveLatLng(const LatLng&, const ScreenCoordinate&);
 
     void setLatLngZoom(const LatLng &latLng, double zoom);
+
+    void updateMatrix();
 private:
     bool rotatedNorth() const;
     void constrain(double& scale, double& x, double& y) const;
@@ -176,8 +178,8 @@ private:
     double Bc = Projection::worldSize(scale) / util::DEGREES_MAX;
     double Cc = Projection::worldSize(scale) / util::M2PI;
 
-    // mat4 coordiMatrix;
-    // mat4 invertedMatrix;
+    mat4 coordiMatrix;
+    mat4 invertedMatrix;
 };
 
 } // namespace mbgl
