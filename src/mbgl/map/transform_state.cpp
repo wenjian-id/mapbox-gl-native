@@ -108,12 +108,22 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
     }
 }
 
+void TransformState::setSize(const Size& size_) {
+    size = size_;
+//    coordiMatrix = coordinatePointMatrix();
+//    mat4 mat = coordiMatrix;
+//
+//    bool err = matrix::invert(invertedMatrix, mat);
+//
+//    if (err) throw std::runtime_error("failed to invert coordinatePointMatrix");
+
+}
+
 #pragma mark - Dimensions
 
 Size TransformState::getSize() const {
     return size;
 }
-
 #pragma mark - North Orientation
 
 NorthOrientation TransformState::getNorthOrientation() const {
