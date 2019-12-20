@@ -519,7 +519,26 @@ void Placement::placeBucket(
             placeSymbol(*it);
         }
     } else {
-        for (const SymbolInstance& symbol : bucket.symbolInstances) {
+        std::vector<std::reference_wrapper<const SymbolInstance>> sortedSymbols(bucket.symbolInstances.begin(),
+                                                                                bucket.symbolInstances.end());
+        if (auto* previousPlacement = getPrevPlacement()) {
+            std::stable_sort(
+                sortedSymbols.begin(), sortedSymbols.end(), [&](const SymbolInstance& a, const SymbolInstance& b) {
+                    auto* aPlacement = previousPlacement->getSymbolPlacement(a);
+                    auto* bPlacement = previousPlacement->getSymbolPlacement(b);
+                    if (!aPlacement) {
+                        // a < b, if 'a' is new and if 'b' was previously hidden.
+                        return bPlacement && !bPlacement->placed();
+                    }
+                    if (!bPlacement) {
+                        // a < b, if 'b' is new and 'a' was previously shown.
+                        return aPlacement && aPlacement->placed();
+                    }
+                    // a < b, if 'a' was shown and 'b' was hidden.
+                    return aPlacement->placed() && !bPlacement->placed();
+                });
+        }
+        for (const SymbolInstance& symbol : sortedSymbols) {
             placeSymbol(symbol);
         }
     }
@@ -1053,6 +1072,13 @@ float Placement::zoomAdjustment(const float zoom) const {
     // It is also used to reduce the interval between placement calculations. Reducing the
     // interval between placements means collisions are discovered and eliminated sooner.
     return std::max(0.0, (placementZoom - zoom) / 1.5);
+}
+
+const JointPlacement* Placement::getSymbolPlacement(const SymbolInstance& symbol) const {
+    assert(symbol.crossTileID != 0);
+    auto found = placements.find(symbol.crossTileID);
+    if (found == placements.end()) return nullptr;
+    return &found->second;
 }
 
 Duration Placement::getUpdatePeriod(const float zoom) const {
