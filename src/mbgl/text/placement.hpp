@@ -44,9 +44,8 @@ public:
 
 class JointPlacement {
 public:
-    JointPlacement(bool text_, bool icon_, bool skipFade_)
-        : text(text_), icon(icon_), skipFade(skipFade_)
-    {}
+    JointPlacement(bool text_, bool icon_, bool skipFade_, TimePoint commitTime_)
+        : text(text_), icon(icon_), skipFade(skipFade_), commitTime(commitTime_) {}
 
     bool placed() const { return text || icon; }
 
@@ -57,6 +56,8 @@ public:
     // and if a subsequent viewport change brings them into view, they'll be fully
     // visible right away.
     const bool skipFade;
+    // Commit time for the given placement.
+    TimePoint commitTime;
 };
   
 struct RetainedQueryData {
@@ -118,9 +119,10 @@ public:
               MapMode,
               style::TransitionOptions,
               const bool crossSourceCollisions,
+              TimePoint commitTime,
               optional<Immutable<Placement>> prevPlacement = nullopt);
     void placeLayer(const RenderLayer&, const mat4&, bool showCollisionBoxes);
-    void commit(TimePoint, const double zoom);
+    void commit();
     void updateLayerBuckets(const RenderLayer&, const TransformState&, bool updateOpacities) const;
     float symbolFadeChange(TimePoint now) const;
     bool hasTransitions(TimePoint now) const;
@@ -154,8 +156,9 @@ private:
 
     TimePoint fadeStartTime;
     TimePoint commitTime;
-    float placementZoom;
+    const float placementZoom;
     float prevZoomAdjustment = 0;
+    const bool transitionRunning;
 
     std::unordered_map<uint32_t, JointPlacement> placements;
     std::unordered_map<uint32_t, JointOpacityState> opacities;

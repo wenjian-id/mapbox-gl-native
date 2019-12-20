@@ -61,7 +61,8 @@ const CollisionGroups::CollisionGroup& CollisionGroups::get(const std::string& s
 // PlacementController implemenation
 
 PlacementController::PlacementController()
-    : placement(makeMutable<Placement>(TransformState{}, MapMode::Static, style::TransitionOptions{}, true, nullopt)) {}
+    : placement(makeMutable<Placement>(
+          TransformState{}, MapMode::Static, style::TransitionOptions{}, true, TimePoint(), nullopt)) {}
 
 void PlacementController::setPlacement(Immutable<Placement> placement_) {
     placement = std::move(placement_);
@@ -94,11 +95,14 @@ Placement::Placement(const TransformState& state_,
                      MapMode mapMode_,
                      style::TransitionOptions transitionOptions_,
                      const bool crossSourceCollisions,
+                     TimePoint commitTime_,
                      optional<Immutable<Placement>> prevPlacement_)
     : collisionIndex(state_, mapMode_),
       mapMode(mapMode_),
       transitionOptions(std::move(transitionOptions_)),
+      commitTime(commitTime_),
       placementZoom(state_.getZoom()),
+      transitionRunning(state_.isChanging()),
       collisionGroups(crossSourceCollisions),
       prevPlacement(std::move(prevPlacement_)) {
     assert(prevPlacement || mapMode != MapMode::Continuous);
@@ -204,8 +208,19 @@ void Placement::placeBucket(
         if (renderTile.holdForFade()) {
             // Mark all symbols from this tile as "not placed", but don't add to seenCrossTileIDs, because we don't
             // know yet if we have a duplicate in a parent tile that _should_ be placed.
-            placements.emplace(symbolInstance.crossTileID, JointPlacement(false, false, false));
+            placements.emplace(symbolInstance.crossTileID, JointPlacement(false, false, false, commitTime));
             return;
+        }
+        auto* previousPlacement = getPrevPlacement();
+        if (transitionRunning && previousPlacement) {
+            if (auto* symbolPlacement = previousPlacement->getSymbolPlacement(symbolInstance)) {
+                if (!symbolPlacement->placed() && !symbolPlacement->skipFade &&
+                    (commitTime - symbolPlacement->commitTime) < Milliseconds(1000)) {
+                    placements.emplace(symbolInstance.crossTileID, *symbolPlacement);
+                    seenCrossTileIDs.emplace(symbolInstance.crossTileID);
+                    return;
+                }
+            }
         }
         textBoxes.clear();
         iconBoxes.clear();
@@ -507,8 +522,12 @@ void Placement::placeBucket(
             // Erase it so that the placement result from the non-fading tile supersedes it
             placements.erase(symbolInstance.crossTileID);
         }
-        
-        placements.emplace(symbolInstance.crossTileID, JointPlacement(placeText || alwaysShowText, placeIcon || alwaysShowIcon, offscreen || bucket.justReloaded));
+
+        placements.emplace(symbolInstance.crossTileID,
+                           JointPlacement(placeText || alwaysShowText,
+                                          placeIcon || alwaysShowIcon,
+                                          offscreen || bucket.justReloaded,
+                                          commitTime));
         seenCrossTileIDs.insert(symbolInstance.crossTileID);
     };
 
@@ -552,8 +571,7 @@ void Placement::placeBucket(
                                 std::forward_as_tuple(bucket.bucketInstanceId, params.featureIndex, overscaledID));
 }
 
-void Placement::commit(TimePoint now, const double zoom) {
-    commitTime = now;
+void Placement::commit() {
     if (!getPrevPlacement()) {
         assert(mapMode != MapMode::Continuous);
         fadeStartTime = commitTime;
@@ -568,7 +586,7 @@ void Placement::commit(TimePoint now, const double zoom) {
 
     bool placementChanged = false;
 
-    prevZoomAdjustment = getPrevPlacement()->zoomAdjustment(zoom);
+    prevZoomAdjustment = getPrevPlacement()->zoomAdjustment(placementZoom);
     float increment = getPrevPlacement()->symbolFadeChange(commitTime);
 
     // add the opacities from the current placement, and copy their current values from the previous placement
