@@ -8,7 +8,11 @@ set(
     ${CMAKE_CURRENT_LIST_DIR}/window.cpp
 )
 
-if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+if(CMAKE_SYSTEM_NAME STREQUAL Android)
+    include(${CMAKE_CURRENT_LIST_DIR}/impl_glfm.cmake)
+elseif(CMAKE_SYSTEM_NAME STREQUAL iOS)
+    include(${CMAKE_CURRENT_LIST_DIR}/impl_glfm.cmake)
+elseif(CMAKE_SYSTEM_NAME STREQUAL Linux)
     include(${CMAKE_CURRENT_LIST_DIR}/impl_glfw.cmake)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
     include(${CMAKE_CURRENT_LIST_DIR}/impl_glfw.cmake)
