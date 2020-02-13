@@ -124,19 +124,10 @@ if(WIN32 OR CMAKE_SYSTEM_NAME STREQUAL Android AND ANDROID_NATIVE_API_LEVEL VERS
     set(MBGL_TEST_HAS_TEST_SERVER 0)
 else()
     set(MBGL_TEST_HAS_TEST_SERVER 1)
+
     target_sources(
         mbgl-test
         PRIVATE ${PROJECT_SOURCE_DIR}/test/src/mbgl/test/http_server.cpp
-    )
-    set_source_files_properties(
-        ${PROJECT_SOURCE_DIR}/test/src/mbgl/test/http_server.cpp
-        PROPERTIES
-        COMPILE_FLAGS
-        -Wno-shadow
-    )
-    target_include_directories(
-        mbgl-test
-        PRIVATE ${PROJECT_SOURCE_DIR}/vendor/cpp-httplib
     )
 endif()
 
@@ -165,6 +156,7 @@ target_include_directories(
     PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/test/include
 )
 
+include(${PROJECT_SOURCE_DIR}/vendor/cpp-httplib.cmake)
 include(${PROJECT_SOURCE_DIR}/vendor/googletest.cmake)
 
 # Needed for testing private classes
@@ -177,6 +169,7 @@ target_link_libraries(
         Mapbox::Base::Extras::args
         Mapbox::Base::pixelmatch-cpp
         mbgl-compiler-options
+        mbgl-vendor-cpp-httplib
     PUBLIC mbgl-core
 )
 
