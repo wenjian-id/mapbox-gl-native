@@ -1,10 +1,14 @@
+#if U_ICU_VERSION_MAJOR_NUM >= 62
 #include <mbgl/i18n/number_format.hpp>
-
 #include <unicode/numberformatter.h>
+#endif
+
+#include <string>
 
 namespace mbgl {
 namespace platform {
 
+#if U_ICU_VERSION_MAJOR_NUM >= 62
 std::string formatNumber(double number,
                          const std::string& localeId,
                          const std::string& currency,
@@ -22,28 +26,21 @@ std::string formatNumber(double number,
                    .unit(icu::CurrencyUnit(ucurrency.getBuffer(), status))
                    .locale(locale)
                    .formatDouble(number, status)
-#if U_ICU_VERSION_MAJOR_NUM >= 62
                    .toString(status);
-#else
-                   .toString();
-#endif
     } else {
         ustr = icu::number::NumberFormatter::with()
-#if U_ICU_VERSION_MAJOR_NUM >= 62
                    .precision(icu::number::Precision::minMaxFraction(minFractionDigits, maxFractionDigits))
-#else
-                   .rounding(icu::number::Rounder::minMaxFraction(minFractionDigits, maxFractionDigits))
-#endif
                    .locale(locale)
                    .formatDouble(number, status)
-#if U_ICU_VERSION_MAJOR_NUM >= 62
                    .toString(status);
-#else
-                   .toString();
-#endif
     }
     return ustr.toUTF8String(formatted);
 }
+#else
+std::string formatNumber(double number, const std::string&, const std::string&, uint8_t, uint8_t) {
+    return std::to_string(number);
+}
+#endif
 
 } // namespace platform
 } // namespace mbgl
