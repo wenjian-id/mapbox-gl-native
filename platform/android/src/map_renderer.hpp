@@ -82,6 +82,7 @@ protected:
     void scheduleSnapshot(std::unique_ptr<SnapshotCallback>);
 
 private:
+    std::shared_ptr<Mailbox> getMailbox() noexcept;
     // Called from the GL Thread //
 
     // Resets the renderer

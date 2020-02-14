@@ -17,11 +17,10 @@ MapRenderer::MapRenderer(jni::JNIEnv& _env,
                          const jni::Object<MapRenderer>& obj,
                          jni::jfloat pixelRatio_,
                          const jni::String& localIdeographFontFamily_)
-        : javaPeer(_env, obj)
-        , pixelRatio(pixelRatio_)
-        , localIdeographFontFamily(localIdeographFontFamily_ ? jni::Make<std::string>(_env, localIdeographFontFamily_) : optional<std::string>{})
-        , mailbox(std::make_shared<Mailbox>(*this)) {
-}
+    : javaPeer(_env, obj),
+      pixelRatio(pixelRatio_),
+      localIdeographFontFamily(localIdeographFontFamily_ ? jni::Make<std::string>(_env, localIdeographFontFamily_)
+                                                         : optional<std::string>{}) {}
 
 MapRenderer::~MapRenderer() = default;
 
@@ -30,7 +29,7 @@ void MapRenderer::reset() {
 
     if (renderer) {
         // Make sure to destroy the renderer on the GL Thread
-        auto self = ActorRef<MapRenderer>(*this, mailbox);
+        auto self = ActorRef<MapRenderer>(*this, getMailbox());
         self.ask(&MapRenderer::resetRenderer).wait();
     }
 
@@ -93,7 +92,7 @@ void MapRenderer::setObserver(std::shared_ptr<RendererObserver> _rendererObserve
 }
 
 void MapRenderer::requestSnapshot(SnapshotCallback callback) {
-    auto self = ActorRef<MapRenderer>(*this, mailbox);
+    auto self = ActorRef<MapRenderer>(*this, getMailbox());
     self.invoke(
             &MapRenderer::scheduleSnapshot,
             std::make_unique<SnapshotCallback>([&, callback=std::move(callback), runloop=util::RunLoop::Get()](PremultipliedImage image) {
@@ -105,6 +104,13 @@ void MapRenderer::requestSnapshot(SnapshotCallback callback) {
                 snapshotCallback.reset();
             })
     );
+}
+
+std::shared_ptr<Mailbox> MapRenderer::getMailbox() noexcept {
+    if (!mailbox) {
+        mailbox = std::make_shared<Mailbox>(*this);
+    }
+    return mailbox;
 }
 
 // Called on OpenGL thread //
@@ -172,7 +178,7 @@ void MapRenderer::onSurfaceCreated(JNIEnv&) {
     // Create the new backend and renderer
     backend = std::make_unique<AndroidRendererBackend>();
     renderer = std::make_unique<Renderer>(*backend, pixelRatio, localIdeographFontFamily);
-    rendererRef = std::make_unique<ActorRef<Renderer>>(*renderer, mailbox);
+    rendererRef = std::make_unique<ActorRef<Renderer>>(*renderer, getMailbox());
 
     // Set the observer on the new Renderer implementation
     if (rendererObserver) {
@@ -193,7 +199,7 @@ void MapRenderer::onSurfaceChanged(JNIEnv& env, jint width, jint height) {
 
 void MapRenderer::onRendererReset(JNIEnv&) {
     // Make sure to destroy the renderer on the GL Thread
-    auto self = ActorRef<MapRenderer>(*this, mailbox);
+    auto self = ActorRef<MapRenderer>(*this, getMailbox());
     self.ask(&MapRenderer::resetRenderer).wait();
 }
 
